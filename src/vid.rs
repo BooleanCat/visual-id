@@ -3,16 +3,16 @@ use std::str::FromStr;
 use super::error::Error;
 
 #[derive(Debug, PartialEq)]
-struct VID {
-    id: u16,
-    checksum: u8,
+pub struct VID {
+    pub id: u32,
+    pub checksum: u8,
 }
 
 impl FromStr for VID {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let id = s.parse::<u16>()?;
+        let id = s.parse::<u32>()?;
 
         match id {
             id if id > 1000 => Err(Error::Overflow),
@@ -22,7 +22,7 @@ impl FromStr for VID {
 }
 
 impl VID {
-    fn new(id: u16) -> VID {
+    pub fn new(id: u32) -> VID {
         let checksum = (
             id / 1000
             + 10 * ((id / 100) % 10)
