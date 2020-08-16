@@ -1,8 +1,9 @@
 use std::str::FromStr;
+use std::fmt;
 
 use super::error::Error;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct VID {
     pub id: u32,
     pub checksum: u8,
@@ -12,17 +13,22 @@ impl FromStr for VID {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let id = s.parse::<u32>()?;
+        VID::new(s.parse()?)
+    }
+}
 
-        match id {
-            id if id > 1000 => Err(Error::Overflow),
-            _ => Ok(VID::new(id))
-        }
+impl fmt::Display for VID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:04}", self.id)
     }
 }
 
 impl VID {
-    pub fn new(id: u32) -> VID {
+    pub fn new(id: u32) -> Result<VID, Error> {
+        if id > 9999 {
+            return Err(Error::Overflow);
+        }
+
         let checksum = (
             id / 1000
             + 10 * ((id / 100) % 10)
@@ -30,7 +36,7 @@ impl VID {
             + 1000 * (id % 10)
         ) % 97;
 
-        VID { id, checksum: checksum as u8 }
+        Ok(VID { id, checksum: checksum as u8 })
     }
 }
 
@@ -40,8 +46,8 @@ mod tests {
 
     #[test]
     fn parse() {
-        let expected = VID::new(400);
-        assert_eq!("400".parse::<VID>().unwrap(), expected);
+        let expected = VID::new(4000).unwrap();
+        assert_eq!("4000".parse::<VID>().unwrap(), expected);
     }
 
     #[test]
@@ -53,11 +59,16 @@ mod tests {
     #[test]
     fn parse_overflow() {
         let expected = Err(Error::Overflow);
-        assert_eq!("1001".parse::<VID>(), expected);
+        assert_eq!("10001".parse::<VID>(), expected);
     }
 
     #[test]
     fn checksum() {
-        assert_eq!(VID::new(1337).checksum, 56);
+        assert_eq!(VID::new(1337).unwrap().checksum, 56);
+    }
+
+    #[test]
+    fn display_pads_zeros() {
+        assert_eq!("0022", format!("{}", VID::new(0022).unwrap()))
     }
 }

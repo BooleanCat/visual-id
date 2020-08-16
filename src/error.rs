@@ -15,8 +15,7 @@ impl From<ParseIntError> for Error {
 }
 
 impl From<EncodingError> for Error {
-    fn from(e: EncodingError) -> Self {
-        println!("{:?}", e);
+    fn from(_: EncodingError) -> Self {
         Error::Encode
     }
 }

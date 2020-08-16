@@ -2,7 +2,7 @@ use std::iter::repeat;
 use std::io::Write;
 
 use super::vid::VID;
-use super::digit::Digits;
+use super::digit::VIDDigitIter;
 use super::error::Error;
 
 #[derive(Debug, PartialEq)]
@@ -21,6 +21,9 @@ impl From<u8> for Segments {
             7 => 0b01000110,
             8 => 0b11110111,
             9 => 0b11010111,
+
+            // Code branch should never be reached as Segments should only be
+            // used for single digit numbers.
             _ => unreachable!(),
         })
     }
@@ -37,8 +40,7 @@ impl From<VID> for Image {
         let data = repeat(0).take(1)
 
             // Visual ID
-            .chain(Digits::new(vid.checksum).map(|d| Segments::from(d).0))
-            .chain(Digits::new(vid.id).map(|d| Segments::from(d).0))
+            .chain(VIDDigitIter::new(vid).map(|digit| Segments::from(digit).0))
 
             // Reserved bits
             .chain(repeat(0).take(25))
@@ -73,7 +75,7 @@ mod tests {
     fn image() {
         let mut got = std::io::Cursor::new(Vec::new());
 
-        Image::from(VID::new(1337)).encode(&mut got).unwrap();
+        Image::from(VID::new(1337).unwrap()).encode(&mut got).unwrap();
         got.seek(std::io::SeekFrom::Start(0)).unwrap();
 
         let mut fixture = File::open("fixtures/1337.png").unwrap();
