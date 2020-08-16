@@ -19,8 +19,6 @@ impl Iterator for Digits {
             return None;
         }
 
-        println!("mask: {}", self.mask);
-
         let digit = self.value / self.mask % 10;
         self.mask /= 10;
 

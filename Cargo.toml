@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 png = "0.16"
+bytes = "0.5"
